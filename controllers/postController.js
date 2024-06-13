@@ -382,6 +382,26 @@ const getPostsByHashtags = async (req, res) => {
   }
 };
 
+const getPostsByText = async (req, res) => {
+  try {
+    const { searchText } = req.query;
+    if (!searchText || typeof searchText !== 'string') {
+      return res.status(400).json({ error: 'Invalid searchText provided' });
+    }
+
+    const posts = await Post.find({
+      text: { $regex: searchText, $options: 'i' },
+    }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in getting posts by text', err.message);
+  }
+};
+
 module.exports = {
   createPost,
   getPost,
@@ -394,4 +414,5 @@ module.exports = {
   getFeedPosts,
   getUserPosts,
   getPostsByHashtags,
+  getPostsByText,
 };
