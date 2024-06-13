@@ -56,4 +56,33 @@ const createPost = async (req, res) => {
   }
 };
 
-module.exports = { createPost };
+const getPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const viewerId = req.user._id;
+    console.log('post id from req param is: ', postId);
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      console.log('Post does not exist');
+      return res.status(400).json({ error: 'Post does not exist' });
+    }
+    const authorId = post.postedBy.toString();
+    if (authorId !== viewerId.toString()) {
+      if (!post.viewedBy.includes(viewerId.toString())) {
+        post.viewedBy.push(viewerId);
+      }
+
+      post.viewCount = post.viewedBy.length;
+    }
+    await post.save();
+
+    console.log('Post found');
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in creating post', err.message);
+  }
+};
+
+module.exports = { createPost, getPost };
