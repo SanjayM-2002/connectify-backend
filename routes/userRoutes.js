@@ -5,6 +5,8 @@ const {
   logoutUser,
   followUnfollowUser,
   getUserProfile,
+  getAllUsers,
+  searchUser,
 } = require('../controllers/userController');
 const { protectRoute } = require('../middlewares/protectRoute');
 
@@ -15,6 +17,8 @@ router.get('/hello', (req, res) => {
   res.json({ msg: 'hello world' });
 });
 
+router.get('/allUsers', getAllUsers);
+router.get('/search/:query', searchUser);
 router.get('/profile/:query', protectRoute, getUserProfile);
 router.post('/signup', signUpUser);
 router.post('/login', loginUser);

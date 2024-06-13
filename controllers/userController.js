@@ -208,10 +208,41 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password -updatedAt');
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in getting list of users', err.message);
+  }
+};
+
+const searchUser = async (req, res) => {
+  const { query } = req.params;
+  try {
+    const users = await User.find(
+      {
+        $or: [
+          { username: { $regex: query, $options: 'i' } }, // Case-insensitive search
+          { fullname: { $regex: query, $options: 'i' } },
+        ],
+      },
+      '-password -updatedAt'
+    );
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in searching users', err.message);
+  }
+};
+
 module.exports = {
   signUpUser,
   loginUser,
   logoutUser,
   followUnfollowUser,
   getUserProfile,
+  getAllUsers,
+  searchUser,
 };
