@@ -1,6 +1,10 @@
 const express = require('express');
 const { protectRoute } = require('../middlewares/protectRoute');
-const { createPost, getPost } = require('../controllers/postController');
+const {
+  createPost,
+  getPost,
+  deletePost,
+} = require('../controllers/postController');
 
 const router = express.Router();
 router.get('/hello', (req, res) => {
@@ -10,5 +14,6 @@ router.get('/hello', (req, res) => {
 
 router.post('/create', protectRoute, createPost);
 router.get('/:id', protectRoute, getPost);
+router.delete('/:id', protectRoute, deletePost);
 
 module.exports = router;

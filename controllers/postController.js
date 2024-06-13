@@ -85,4 +85,37 @@ const getPost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPost };
+const deletePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    console.log('Post id from req params is: ', postId);
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      console.log('Post not found');
+      return res.status(400).json({ error: 'Post not found' });
+    }
+
+    console.log('Data from middleware: ', req.user);
+
+    if (post.postedBy.toString() !== req.user._id.toString()) {
+      console.log('You cant delete post created by others');
+      return res
+        .status(401)
+        .json({ error: 'You cant delete post created by others' });
+    }
+
+    await Post.findByIdAndDelete(post);
+    if (post.image) {
+      const imageId = post.image.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(imageId);
+    }
+    console.log('Post deleted successfully');
+    res.status(200).json({ message: 'Post deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in deleting post', err.message);
+  }
+};
+
+module.exports = { createPost, getPost, deletePost };
