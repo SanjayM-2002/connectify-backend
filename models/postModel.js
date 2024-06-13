@@ -41,16 +41,21 @@ const postSchema = mongoose.Schema(
         text: {
           type: String,
           maxLength: 500,
-          requires: true,
+          required: true,
         },
         userProfilePic: {
           type: String,
         },
-        userName: {
+        username: {
           type: String,
         },
         fullname: {
           type: String,
+        },
+        likes: {
+          type: [mongoose.Schema.Types.ObjectId],
+          ref: 'User',
+          default: [],
         },
       },
     ],
