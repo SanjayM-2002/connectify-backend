@@ -7,6 +7,7 @@ const {
   getUserProfile,
   getAllUsers,
   searchUser,
+  updateUser,
 } = require('../controllers/userController');
 const { protectRoute } = require('../middlewares/protectRoute');
 
@@ -24,5 +25,6 @@ router.post('/signup', signUpUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.post('/follow/:id', protectRoute, followUnfollowUser);
+router.put('/update/:id', protectRoute, updateUser);
 
 module.exports = router;

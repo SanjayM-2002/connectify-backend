@@ -6,6 +6,7 @@ const {
   generateTokenAndSetCookie,
 } = require('../utils/generateTokenAndSetCookie');
 const { mongoose } = require('mongoose');
+const { Post } = require('../models/postModel');
 
 const mobileNumberRegex = /^[0-9]{10}$/;
 
@@ -181,6 +182,66 @@ const followUnfollowUser = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  const { fullname, email, username, password, bio } = req.body;
+  let { profilePic } = req.body;
+  console.log('user object obtained from middleware is: ', req.user);
+  const userId = req.user._id;
+  try {
+    let user = await User.findById(userId);
+    if (!user) {
+      console.log('Invalid user');
+      return res.status(400).json({ error: 'Invalid user' });
+    }
+
+    if (req.params.id !== userId.toString()) {
+      console.log('You cannot update other profile');
+      return res.status(400).json({ error: 'You cannot update other profile' });
+    }
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      user.password = hashedPassword;
+    }
+    if (profilePic) {
+      if (user.profilePic) {
+        await cloudinary.uploader.destroy(
+          user.profilePic.split('/').pop().split('.')[0]
+        );
+      }
+      const uploadedResponse = await cloudinary.uploader.upload(profilePic);
+      profilePic = uploadedResponse.secure_url;
+    }
+
+    user.fullname = fullname || user.fullname;
+    user.email = email || user.email;
+    user.username = username || user.username;
+    user.profilePic = profilePic || user.profilePic;
+    user.bio = bio || user.bio;
+
+    user = await user.save();
+
+    //Here we find all posts that the current user replied and update username and user profilPic fields in that reply
+    await Post.updateMany(
+      { 'replies.userId': userId },
+      {
+        $set: {
+          'replies.$[reply].fullname': user.fullname,
+          'replies.$[reply].username': user.username,
+          'replies.$[reply].userProfilePic': user.profilePic,
+        },
+      },
+      { arrayFilters: [{ 'reply.userId': userId }] }
+    );
+
+    res.status(200).json(user);
+    console.log('Profile updated successfully');
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in updating user-profile', err.message);
+  }
+};
+
 const getUserProfile = async (req, res) => {
   const { query } = req.params;
   try {
@@ -245,4 +306,5 @@ module.exports = {
   getUserProfile,
   getAllUsers,
   searchUser,
+  updateUser,
 };
