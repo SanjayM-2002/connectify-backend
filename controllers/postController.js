@@ -118,4 +118,43 @@ const deletePost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPost, deletePost };
+const likeUnlikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      console.log('Post not found');
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    const authorId = post.postedBy.toString();
+    if (authorId !== userId.toString()) {
+      if (!post.viewedBy.includes(userId.toString())) {
+        post.viewedBy.push(userId);
+      }
+
+      post.viewCount = post.viewedBy.length;
+    }
+    await post.save();
+
+    const userLikedPost = await post.likes.includes(userId);
+    if (userLikedPost) {
+      //Unlike
+      await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
+      console.log('Unliked successfully');
+      res.status(200).json({ message: 'Unliked successfully' });
+    } else {
+      //Like
+      post.likes.push(userId);
+      await post.save();
+      console.log('Liked successfully');
+      res.status(200).json({ message: 'Liked successfully' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in liking/unliking post', err.message);
+  }
+};
+
+module.exports = { createPost, getPost, deletePost, likeUnlikePost };
