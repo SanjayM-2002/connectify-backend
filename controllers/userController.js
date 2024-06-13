@@ -5,6 +5,7 @@ const { User } = require('../models/userModel');
 const {
   generateTokenAndSetCookie,
 } = require('../utils/generateTokenAndSetCookie');
+const { mongoose } = require('mongoose');
 
 const mobileNumberRegex = /^[0-9]{10}$/;
 
@@ -118,4 +119,99 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { signUpUser, loginUser };
+const logoutUser = async (req, res) => {
+  try {
+    res.cookie('jwt', '', { maxAge: 1 });
+    res.status(200).json({ message: 'Logged out successfully' });
+    console.log('Logged out successfully');
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in logout', err.message);
+  }
+};
+
+const followUnfollowUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log('id from req params is: ', id);
+    const userToModify = await User.findById(id);
+    const currentUser = await User.findById(req.user._id);
+
+    if (!userToModify) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+    if (!currentUser) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+    if (id === req.user._id.toString()) {
+      return res
+        .status(400)
+        .json({ error: 'You cannot follow or unfollow yourself' });
+    }
+
+    const isFollowing = currentUser.following.includes(id);
+    if (isFollowing) {
+      //Unfollow
+      //Modify following array of currentUser (delete)
+      //Modify followers array of userToModify (delete)
+
+      await User.findByIdAndUpdate(req.user._id, {
+        $pull: { following: id },
+      });
+      await User.findByIdAndUpdate(id, {
+        $pull: { followers: req.user._id },
+      });
+      res.status(200).json({ message: 'User unfollowed successfully' });
+    } else {
+      //Follow
+      //Modify following array of currentUser (add)
+      //Modify followers array of userToModify (add)
+
+      await User.findByIdAndUpdate(req.user._id, {
+        $push: { following: id },
+      });
+      await User.findByIdAndUpdate(id, {
+        $push: { followers: req.user._id },
+      });
+      res.status(200).json({ message: 'User followed successfully' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in follow or unfollow', err.message);
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  const { query } = req.params;
+  try {
+    let user;
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      user = await User.findOne({ _id: query })
+        .select('-password')
+        .select('-updatedAt');
+    } else {
+      user = await User.findOne({ username: query })
+        .select('-password')
+        .select('-updatedAt');
+    }
+    // console.log('User is: ', user);
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log('User found');
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in getting user-profile', err.message);
+  }
+};
+
+module.exports = {
+  signUpUser,
+  loginUser,
+  logoutUser,
+  followUnfollowUser,
+  getUserProfile,
+};

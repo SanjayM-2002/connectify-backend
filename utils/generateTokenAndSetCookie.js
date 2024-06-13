@@ -5,10 +5,11 @@ const generateTokenAndSetCookie = (userId, res) => {
     expiresIn: '5d',
   });
   res.cookie('jwt', token, {
-    httpOnly: true, //secure
-    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-    sameSite: 'strict', // protection
+    httpOnly: true,
+    maxAge: 5 * 24 * 60 * 60 * 1000,
+    sameSite: 'strict',
   });
+  console.log('token: ', token);
 
   return token;
 };
