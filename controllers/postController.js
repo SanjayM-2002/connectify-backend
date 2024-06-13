@@ -351,6 +351,37 @@ const deleteReply = async (req, res) => {
   }
 };
 
+const getPostsByHashtags = async (req, res) => {
+  try {
+    let { hashtags } = req.query;
+
+    if (!hashtags) {
+      return res.status(400).json({ error: 'Invalid hashtags provided' });
+    }
+
+    // Converting the string of hashtags into an array
+    if (typeof hashtags === 'string') {
+      hashtags = hashtags.split(',').map((tag) => tag.trim());
+    }
+
+    // Ensuring hashtags include the # symbol if not already present
+    const formattedHashtags = hashtags.map((tag) =>
+      tag.startsWith('#') ? tag : `#${tag}`
+    );
+
+    const posts = await Post.find({
+      hashtags: { $in: formattedHashtags },
+    }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log('Error in getting posts by hashtags', err.message);
+  }
+};
+
 module.exports = {
   createPost,
   getPost,
@@ -362,4 +393,5 @@ module.exports = {
   deleteReply,
   getFeedPosts,
   getUserPosts,
+  getPostsByHashtags,
 };

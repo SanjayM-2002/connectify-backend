@@ -11,6 +11,7 @@ const {
   deleteReply,
   getFeedPosts,
   getUserPosts,
+  getPostsByHashtags,
 } = require('../controllers/postController');
 
 const router = express.Router();
@@ -30,5 +31,6 @@ router.put('/reply/:id', protectRoute, replyToPost);
 router.put('/reply/like/:postId/:replyId', protectRoute, likeUnlikeReply);
 router.put('/reply/edit/:postId/:replyId', protectRoute, editReply);
 router.delete('/reply/delete/:postId/:replyId', protectRoute, deleteReply);
+router.get('/hashtags', protectRoute, getPostsByHashtags);
 
 module.exports = router;
