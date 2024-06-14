@@ -8,6 +8,7 @@ const generateTokenAndSetCookie = (userId, res) => {
     httpOnly: true,
     maxAge: 5 * 24 * 60 * 60 * 1000,
     sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
   });
   console.log('token: ', token);
 

@@ -44,7 +44,7 @@ git clone https://github.com/SanjayM-2002/connectify-backend
 cd connectify-backend
 ```
 
-Set up .env in backend:
+Set up .env:
 
 ```bash
 PORT = 3000
@@ -54,6 +54,7 @@ SALTROUNDS =
 CLOUDINARY_CLOUD_NAME =
 CLOUDINARY_API_KEY =
 CLOUDINARY_API_SECRET =
+NODE_ENV
 ```
 
 ```bash
